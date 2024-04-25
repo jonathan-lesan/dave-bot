@@ -25,6 +25,7 @@ type Card struct {
 		ArtCrop    string `json:"art_crop"`
 		BorderCrop string `json:"border_crop"`
 	} `json:"image_uris"`
+	Layout    string `json:"layout"`
 	CardFaces []struct {
 		Object         string   `json:"object"`
 		Name           string   `json:"name"`
@@ -93,13 +94,12 @@ func card(cardname []string) string {
 		fmt.Print(err.Error())
 		return "error parsing response"
 	}
-	//fmt.Println(string(responseData))
 
 	var responseObject Card
 
 	json.Unmarshal(responseData, &responseObject)
 
-	if responseObject.CardFaces != nil {
+	if responseObject.Layout == "transform" {
 		cardString := ""
 		for _, element := range responseObject.CardFaces {
 			cardString += element.ImageUris.Large + " "
