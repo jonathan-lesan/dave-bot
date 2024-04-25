@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,6 +14,38 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 )
+
+type Card struct {
+	Name      string `json:"name"`
+	ImageUris struct {
+		Small      string `json:"small"`
+		Normal     string `json:"normal"`
+		Large      string `json:"large"`
+		Png        string `json:"png"`
+		ArtCrop    string `json:"art_crop"`
+		BorderCrop string `json:"border_crop"`
+	} `json:"image_uris"`
+	CardFaces []struct {
+		Object         string   `json:"object"`
+		Name           string   `json:"name"`
+		ManaCost       string   `json:"mana_cost"`
+		TypeLine       string   `json:"type_line"`
+		OracleText     string   `json:"oracle_text"`
+		Colors         []string `json:"colors"`
+		Loyalty        string   `json:"loyalty"`
+		Artist         string   `json:"artist"`
+		ArtistID       string   `json:"artist_id"`
+		IllustrationID string   `json:"illustration_id"`
+		ImageUris      struct {
+			Small      string `json:"small"`
+			Normal     string `json:"normal"`
+			Large      string `json:"large"`
+			Png        string `json:"png"`
+			ArtCrop    string `json:"art_crop"`
+			BorderCrop string `json:"border_crop"`
+		} `json:"image_uris"`
+	} `json:"card_faces"`
+}
 
 var (
 	Token string
@@ -44,16 +79,39 @@ func gaslight() string {
 	return array_name[rand.Intn(len(array_name))]
 }
 
-//func card(cardname string) string {
-//	response, err := http.Get("https://api.scryfall.com/cards/named?fuzzy=aust+com")
-//}
+func card(cardname []string) string {
+	name := strings.Join(cardname[1:], " ")
+	response, err := http.Get(fmt.Sprintf("https://api.scryfall.com/cards/named?fuzzy=%s", name))
 
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the authenticated bot has access to.
+	if err != nil {
+		fmt.Print(err.Error())
+		return "error"
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Print(err.Error())
+		return "error parsing response"
+	}
+	//fmt.Println(string(responseData))
+
+	var responseObject Card
+
+	json.Unmarshal(responseData, &responseObject)
+
+	if responseObject.CardFaces != nil {
+		cardString := ""
+		for _, element := range responseObject.CardFaces {
+			cardString += element.ImageUris.Large + " "
+		}
+		return cardString
+	} else {
+		return responseObject.ImageUris.Large
+	}
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -64,28 +122,23 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case "!gaslight":
 		s.ChannelMessageSend(m.ChannelID, gaslight())
 	case "!card":
-		s.ChannelMessageSend(m.ChannelID, "card(args[1])")
+		s.ChannelMessageSend(m.ChannelID, card(args))
 	default:
 		return
 	}
 }
 
 func main() {
-
-	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
 
-	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
 
-	// In this example, we only care about receiving message events.
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 
-	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
