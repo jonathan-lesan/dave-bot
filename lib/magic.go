@@ -51,6 +51,7 @@ type Prints struct {
 		ID        string `json:"id"`
 		Name      string `json:"name"`
 		Layout    string `json:"layout"`
+		Set       string `json:"set"`
 		ImageUris struct {
 			Small      string `json:"small"`
 			Normal     string `json:"normal"`
@@ -81,37 +82,41 @@ func Split(r rune) bool {
 func SetDive(setname string, apiuri string) string {
 	imagetoreturn := ""
 
-	response, err := http.Get(apiuri)
-	if err != nil {
-		fmt.Print(err.Error())
-		return "error"
-	}
+	for {
+		response, err := http.Get(apiuri)
+		if err != nil {
+			fmt.Print(err.Error())
+			return "error"
+		}
 
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		fmt.Print(err.Error())
-		return "error parsing set details"
-	}
+		responseData, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			fmt.Print(err.Error())
+			return "error parsing set details"
+		}
 
-	var prints Prints
-	json.Unmarshal(responseData, &prints)
+		var prints Prints
+		json.Unmarshal(responseData, &prints)
 
-	for _, element := range prints.Data {
-		if strings.EqualFold(setname, element.SetName) { //make fuzzy
-			if element.Layout == "transform" {
-				cardString := ""
-				for _, face := range element.CardFaces {
-					cardString += face.ImageUris.Large + " "
+		for _, element := range prints.Data {
+			if strings.EqualFold(setname, element.SetName) || strings.EqualFold(setname, element.Set) { //make fuzzy
+				if element.Layout == "transform" {
+					cardString := ""
+					for _, face := range element.CardFaces {
+						cardString += face.ImageUris.Large + " "
+					}
+					imagetoreturn += cardString
+				} else {
+					imagetoreturn += element.ImageUris.Large + " "
 				}
-				imagetoreturn = cardString
-			} else {
-				imagetoreturn = element.ImageUris.Large
 			}
 		}
-	}
 
-	if prints.HasMore {
-		imagetoreturn = SetDive(setname, prints.NextPage)
+		if !prints.HasMore {
+			break
+		} else {
+			apiuri = prints.NextPage
+		}
 	}
 
 	if imagetoreturn == "" {
