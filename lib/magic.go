@@ -59,11 +59,66 @@ type Prints struct {
 			ArtCrop    string `json:"art_crop"`
 			BorderCrop string `json:"border_crop"`
 		} `json:"image_uris"`
+		CardFaces []struct {
+			Name      string `json:"name"`
+			ImageUris struct {
+				Small      string `json:"small"`
+				Normal     string `json:"normal"`
+				Large      string `json:"large"`
+				Png        string `json:"png"`
+				ArtCrop    string `json:"art_crop"`
+				BorderCrop string `json:"border_crop"`
+			} `json:"image_uris"`
+		} `json:"card_faces"`
+		SetName string `json:"set_name"`
 	} `json:"data"`
 }
 
 func Split(r rune) bool {
 	return r == '(' || r == ')'
+}
+
+func SetDive(setname string, apiuri string) string {
+	imagetoreturn := ""
+
+	response, err := http.Get(apiuri)
+	if err != nil {
+		fmt.Print(err.Error())
+		return "error"
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Print(err.Error())
+		return "error parsing set details"
+	}
+
+	var prints Prints
+	json.Unmarshal(responseData, &prints)
+
+	for _, element := range prints.Data {
+		if strings.EqualFold(setname, element.SetName) { //make fuzzy
+			if element.Layout == "transform" {
+				cardString := ""
+				for _, face := range element.CardFaces {
+					cardString += face.ImageUris.Large + " "
+				}
+				imagetoreturn = cardString
+			} else {
+				imagetoreturn = element.ImageUris.Large
+			}
+		}
+	}
+
+	if prints.HasMore {
+		imagetoreturn = SetDive(setname, prints.NextPage)
+	}
+
+	if imagetoreturn == "" {
+		return fmt.Sprintf("Card does not exist for set %s", setname)
+	} else {
+		return imagetoreturn
+	}
 }
 
 func GetCard(cardname []string) string {
@@ -84,21 +139,23 @@ func GetCard(cardname []string) string {
 		return "error parsing response"
 	}
 
-	var responseObject Card
-	json.Unmarshal(responseData, &responseObject)
+	var card Card
+	json.Unmarshal(responseData, &card)
 
 	//specific set requested. Time to search
 	if len(setSplit) > 1 {
-
+		fmt.Println(setSplit[1])
+		imagetoreturn := SetDive(setSplit[1], card.PrintSearchUri)
+		return imagetoreturn
 	}
 
-	if responseObject.Layout == "transform" {
+	if card.Layout == "transform" {
 		cardString := ""
-		for _, element := range responseObject.CardFaces {
+		for _, element := range card.CardFaces {
 			cardString += element.ImageUris.Large + " "
 		}
 		return cardString
 	} else {
-		return responseObject.ImageUris.Large
+		return card.ImageUris.Large
 	}
 }
