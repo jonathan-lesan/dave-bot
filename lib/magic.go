@@ -19,7 +19,8 @@ type Card struct {
 		ArtCrop    string `json:"art_crop"`
 		BorderCrop string `json:"border_crop"`
 	} `json:"image_uris"`
-	CardFaces []struct {
+	PrintSearchUri string `json:"prints_search_uri"`
+	CardFaces      []struct {
 		Object         string   `json:"object"`
 		Name           string   `json:"name"`
 		ManaCost       string   `json:"mana_cost"`
@@ -41,8 +42,35 @@ type Card struct {
 	} `json:"card_faces"`
 }
 
+type Prints struct {
+	Object     string `json:"object"`
+	TotalCards int    `json:"total_cards"`
+	HasMore    bool   `json:"has_more"`
+	NextPage   string `json:"next_page"`
+	Data       []struct {
+		ID        string `json:"id"`
+		Name      string `json:"name"`
+		Layout    string `json:"layout"`
+		ImageUris struct {
+			Small      string `json:"small"`
+			Normal     string `json:"normal"`
+			Large      string `json:"large"`
+			Png        string `json:"png"`
+			ArtCrop    string `json:"art_crop"`
+			BorderCrop string `json:"border_crop"`
+		} `json:"image_uris"`
+	} `json:"data"`
+}
+
+func Split(r rune) bool {
+	return r == '(' || r == ')'
+}
+
 func GetCard(cardname []string) string {
-	name := strings.Join(cardname[1:], " ")
+	commandValue := strings.Join(cardname[1:], " ")
+	setSplit := strings.FieldsFunc(commandValue, Split)
+	name := setSplit[0]
+
 	response, err := http.Get(fmt.Sprintf("https://api.scryfall.com/cards/named?fuzzy=%s", name))
 
 	if err != nil {
@@ -57,8 +85,12 @@ func GetCard(cardname []string) string {
 	}
 
 	var responseObject Card
-
 	json.Unmarshal(responseData, &responseObject)
+
+	//specific set requested. Time to search
+	if len(setSplit) > 1 {
+
+	}
 
 	if responseObject.Layout == "transform" {
 		cardString := ""
