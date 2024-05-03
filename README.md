@@ -6,6 +6,12 @@ This bot is one I'm making mostly for my friends and does random things we think
 
 * [Go](https://go.dev/) - The language used
 
+## Commands
+
+* !gaslight - Sends a message back to you gaslighting you into thinking the opposite
+* !card - Finds the Magic the Gathering card specified after the command and sends back to the channel. If looking for specific set art put the set name or set abreviation into parenthesis 
+** ex: !card lord wind grace (sld)
+
 ## Authors
 
 * **Jonathan Lesan** 
