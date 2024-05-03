@@ -4,7 +4,7 @@ This bot is one I'm making mostly for my friends and does random things we think
 
 ## Built With
 
-* [GoLang](https://go.dev/) - The language used
+* [Go](https://go.dev/) - The language used
 
 ## Authors
 
