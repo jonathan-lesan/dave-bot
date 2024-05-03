@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gaslightbot/lib"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+
+	"gaslightbot/lib"
 )
 
 var (
@@ -34,6 +35,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, lib.SendGaslight())
 	case "!card":
 		s.ChannelMessageSend(m.ChannelID, lib.GetCard(args))
+	case "!help":
+		s.ChannelMessageSend(m.ChannelID, lib.SendHelp())
 	default:
 		return
 	}
