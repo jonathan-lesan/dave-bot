@@ -30,7 +30,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	args := strings.Split(m.Content, " ")
 
-	switch args[0] {
+	switch strings.ToLower(args[0]) {
 	case "!gaslight":
 		s.ChannelMessageSend(m.ChannelID, lib.SendGaslight())
 	case "!card":
