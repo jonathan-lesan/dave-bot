@@ -1,4 +1,4 @@
-# GaslightBot
+# Dave - Discord Bot
 
 This bot is one I'm making mostly for my friends and does random things we think of for our discord server. Currently the goal is to also showcase some of what I find fun to work on and tie in technology I'm learning at the time. 
 
