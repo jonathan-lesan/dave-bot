@@ -1,26 +1,18 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 
 	"gaslightbot/lib"
 )
-
-var (
-	Token string
-)
-
-func init() {
-	flag.StringVar(&Token, "t", "", "Bot Token")
-	flag.Parse()
-}
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
@@ -42,8 +34,20 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+func goDotEnvVariable(key string) string {
+
+	// load .env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
+}
+
 func main() {
-	dg, err := discordgo.New("Bot " + Token)
+	dg, err := discordgo.New("Bot " + goDotEnvVariable("TOKEN"))
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
