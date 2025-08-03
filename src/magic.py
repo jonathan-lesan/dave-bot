@@ -1,0 +1,2 @@
+def card():
+    return ""
