@@ -1,12 +1,8 @@
-package lib
+import random
 
-import (
-	"math/rand"
-)
-
-func SendGaslight() string {
-	array_name := []string{
-		"I never said that.",
+def gaslight():
+    random_array = [
+        "I never said that.",
 		"I did that because I love you.",
 		"I don't know why you're making such a huge deal of this.",
 		"You're being overly sensitive.",
@@ -21,8 +17,7 @@ func SendGaslight() string {
 		"You don't really feel that way.",
 		"That never happened.",
 		"It's not that big a deal.",
-		"You're just being paranoid.",
-	}
+		"You're just being paranoid."
+    ]
 
-	return array_name[rand.Intn(len(array_name))]
-}
+    return random.choice(random_array)
