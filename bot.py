@@ -15,10 +15,6 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 @client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-
-@client.event
 async def on_message(message):
     if message.author == client.user:
         return
@@ -27,7 +23,10 @@ async def on_message(message):
         await message.channel.send(gaslight.gaslight())
 
     if message.content.lower().startswith('!card'):
-        await message.channel.send(magic.card())
+        await message.channel.send(magic.get_card(message.content))
+
+    if message.content.lower().startswith('!set'):
+        await message.channel.send(magic.set_lookup(message.content))
     
     if message.content.lower().startswith('!help'):
         await message.channel.send(help.helper_message())
